@@ -8,6 +8,8 @@ import ru.tinkoff.sirius.web.model.User;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Сервис для работы с пользователем

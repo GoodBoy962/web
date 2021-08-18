@@ -1,5 +1,6 @@
 package ru.tinkoff.sirius.web.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
@@ -15,6 +16,7 @@ public class UserController {
 
     private final UserService userService;
 
+    @Operation(summary = "Метод для получения пользователя")
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public User getUser(@PathVariable("id") Long id) {
         return userService.getById(id);
