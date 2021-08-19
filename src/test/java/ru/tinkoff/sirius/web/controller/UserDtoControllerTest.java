@@ -17,7 +17,7 @@ import ru.tinkoff.sirius.web.service.UserService;
 @AutoConfigureWebMvc
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = UserController.class)
-class UserControllerTest {
+class UserDtoControllerTest {
 
     protected MockMvc mockMvc;
     @Autowired

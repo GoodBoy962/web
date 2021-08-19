@@ -1,66 +1,84 @@
 package ru.tinkoff.sirius.web.service;
 
+import net.devh.boot.grpc.client.inject.GrpcClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestMapping;
+import ru.tinkoff.sirius.grpc.AccountServiceGrpc;
+import ru.tinkoff.sirius.web.converter.UserDtoToUserConverter;
+import ru.tinkoff.sirius.web.domain.User;
 import ru.tinkoff.sirius.web.exception.NonUniqueUserPhoneException;
-import ru.tinkoff.sirius.web.model.User;
+import ru.tinkoff.sirius.web.model.UserDto;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 /**
  * Сервис для работы с пользователем
  */
 @Service
-@RequestMapping
 public class UserService {
 
     private Map<Long, User> userStore;
-    private long idSeq;
+    private AtomicLong idSeq;
+
+    @Autowired
+    private UserDtoToUserConverter converter;
+
+    @GrpcClient("account")
+    private AccountServiceGrpc.AccountServiceBlockingStub accountServiceBlockingStub;
 
     public UserService() {
-        this.userStore = new HashMap<>();
+        this.userStore = new ConcurrentHashMap<>();
+        this.idSeq = new AtomicLong(1);
     }
 
-    public User getById(Long id) {
-        return userStore.get(id);
+    public UserDto getById(Long id) {
+        return converter.convert(userStore.get(id));
     }
 
-    public User create(User user) {
-        validate(user);
-        var id = idSeq++;
+    public List<UserDto> getAll() {
+        return userStore.values().stream()
+                .map(converter::convert).collect(Collectors.toList());
+    }
+
+
+    public UserDto create(UserDto userDto) {
+        validate(userDto);
+        var id = idSeq.getAndIncrement();
+        userDto.setId(id);
+        var user = converter.convert(userDto);
         user.setId(id);
+        
         userStore.put(id, user);
-        return user;
+        return converter.convert(user);
     }
 
-    public User update(User user) {
-        validate(user);
-        if (user.getId() != null && userStore.containsKey(user.getId())) {
-            userStore.put(user.getId(), user);
-            return user;
+    public UserDto update(UserDto userDto) {
+        validate(userDto);
+        if (userDto.getId() != null && userStore.containsKey(userDto.getId())) {
+            userStore.put(userDto.getId(), converter.convert(userDto));
+            return userDto;
         }
-        if (user.getId() == null) {
-            return create(user);
+        if (userDto.getId() == null) {
+            return create(userDto);
         }
-        userStore.put(user.getId(), user);
-        return user;
+        userStore.put(userDto.getId(), converter.convert(userDto));
+        return userDto;
     }
 
     public void deleteById(Long id) {
         userStore.remove(id);
     }
 
-    private void validate(User user) {
-        String phoneNumber = user.getPhoneNumber();
+    private void validate(UserDto userDto) {
+        String phoneNumber = userDto.getPhoneNumber();
         if (phoneNumber == null) {
             return;
         }
         Optional<User> foundUser = userStore.values().stream()
-                .filter(user1 -> phoneNumber.equals(user1.getPhoneNumber()))
+                .filter(userDto1 -> phoneNumber.equals(userDto1.getPhoneNumber()))
                 .findAny();
         if (foundUser.isPresent()) {
             throw new NonUniqueUserPhoneException(String.format("Phone %s is already exists", phoneNumber));
