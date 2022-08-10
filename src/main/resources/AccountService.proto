@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+package ru.tinkoff.sirius.grpc;
+
+service AccountService {
+  rpc create (CreateAccountRequest) returns (CreateAccountResponse) {
+  }
+}
+
+message CreateAccountRequest {
+  string id = 1;
+  string login = 2;
+}
+
+message CreateAccountResponse {
+  string account = 1;
+}
