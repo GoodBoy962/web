@@ -23,6 +23,16 @@ import java.util.List;
 @ResponseBody
 public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
+    @ExceptionHandler(value = NullPointerException.class)
+    protected ResponseEntity<Object> handleNpe(NullPointerException ex, WebRequest request) {
+        logger.error("NPE happened");
+        return handleExceptionInternal(ex, ApiErrorResponse.builder()
+                .errorCode("USER NOT FOUND")
+                .errorMessage("User doesn't exists").build(),
+            new HttpHeaders(),
+            HttpStatus.BAD_REQUEST, request);
+    }
+
     @ExceptionHandler(value = {NonUniqueUserPhoneException.class})
     protected ResponseEntity<Object> handleError(NonUniqueUserPhoneException ex, WebRequest request) {
         logger.error("Exception is occurred", ex);

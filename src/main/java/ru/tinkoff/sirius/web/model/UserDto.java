@@ -19,6 +19,7 @@ public class UserDto {
 
     private Long id;
     @NotBlank
+    @Schema(description = "Логин пользователя")
     private String login;
     @Schema(description = "Фамилия Имя Отчество пользователя", required = true)
     private String fio;

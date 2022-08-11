@@ -4,6 +4,7 @@ import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.tinkoff.sirius.grpc.AccountServiceGrpc;
+import ru.tinkoff.sirius.grpc.CreateAccountRequest;
 import ru.tinkoff.sirius.web.converter.UserDtoToUserConverter;
 import ru.tinkoff.sirius.web.domain.User;
 import ru.tinkoff.sirius.web.exception.NonUniqueUserPhoneException;
@@ -47,18 +48,23 @@ public class UserService {
 
 
     public UserDto create(UserDto userDto) {
-//        validate(userDto);
+        validate(userDto);
         var id = idSeq.getAndIncrement();
         userDto.setId(id);
         var user = converter.convert(userDto);
         user.setId(id);
 
         userStore.put(id, user);
+        var account = accountServiceBlockingStub
+            .create(CreateAccountRequest.newBuilder()
+                .setId(String.valueOf(id))
+                .setLogin(user.getLogin())
+                .build()).getAccount();
         return converter.convert(user);
     }
 
     public UserDto update(UserDto userDto) {
-//        validate(userDto);
+        validate(userDto);
         if (userDto.getId() != null && userStore.containsKey(userDto.getId())) {
             userStore.put(userDto.getId(), converter.convert(userDto));
             return userDto;

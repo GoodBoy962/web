@@ -8,16 +8,15 @@ import ru.tinkoff.sirius.web.model.UserDto;
 public class UserDtoToUserConverter {
 
     public User convert(UserDto dto) {
-        return new User()
-            .setFio(dto.getFio())
-            .setPhoneNumber(dto.getPhoneNumber())
-            .setLogin(dto.getLogin());
+        var user = new User();
+        user.setFio(dto.getFio());
+        user.setPhoneNumber(dto.getPhoneNumber());
+        return user;
     }
 
     public UserDto convert(User user) {
         return new UserDto()
             .setId(user.getId())
-            .setLogin(user.getLogin())
             .setFio(user.getFio())
             .setPhoneNumber(user.getPhoneNumber());
 
